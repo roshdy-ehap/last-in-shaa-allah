@@ -43,7 +43,10 @@ function createWindow() {
     },
   });
   Menu.setApplicationMenu(null);
-  const htmlFile = path.join(__dirname, 'src', 'index.html');
+  // Determine the correct path for index.html based on whether the app is packaged or in development
+  const htmlFile = app.isPackaged
+    ? path.join(__dirname, 'index.html') // When packaged, index.html is often at the root of the ASAR archive
+    : path.join(__dirname, 'src', 'index.html'); // During development, it's in the 'src' folder
   if (!fs.existsSync(htmlFile)) {
     dialog.showErrorBox('خطأ', 'الملف غير موجود:\n' + htmlFile);
     app.quit(); return;
