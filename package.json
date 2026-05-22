@@ -1,0 +1,59 @@
+{
+  "name": "mizan-pos",
+  "productName": "ميزان POS",
+  "version": "3.1.0",
+  "description": "نظام الإدارة المتكاملة لنقاط البيع",
+  "main": "main.js",
+  "author": { "name": "Mizan POS", "email": "support@mizan-pos.com" },
+  "license": "MIT",
+  "scripts": {
+    "start":     "electron .",
+    "build":     "electron-builder --win --x64",
+    "build32":   "electron-builder --win --ia32",
+    "build-all": "electron-builder --win --x64 --ia32"
+  },
+  "build": {
+    "appId":       "com.mizan.pos",
+    "productName": "ميزان POS",
+    "copyright":   "Copyright 2025 Mizan POS",
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"]  },
+        { "target": "nsis", "arch": ["ia32"] }
+      ],
+      "icon": "icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "publisherName": "Mizan POS"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "installerHeaderIcon": "icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ميزان POS",
+      "language": "1025",
+      "deleteAppDataOnUninstall": false
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "icon.ico",
+      "icon.png",
+      "!node_modules/**/*",
+      "!dist/**/*"
+    ],
+    "directories": { "output": "dist", "buildResources": "." },
+    "compression": "maximum",
+    "publish": null
+  },
+  "devDependencies": {
+    "electron":         "22.3.27",
+    "electron-builder": "^24.13.0"
+  }
+}
