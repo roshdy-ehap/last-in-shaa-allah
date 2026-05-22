@@ -1,0 +1,89 @@
+name: Build Mizan POS
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-x64:
+    name: Windows 64-bit
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+      - name: Install
+        run: npm install --legacy-peer-deps
+      - name: Build x64
+        run: npm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USE_HARD_LINKS: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mizan-x64
+          path: dist/*.exe
+          retention-days: 90
+
+  build-ia32:
+    name: Windows 32-bit (Win7)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+      - name: Install
+        run: npm install --legacy-peer-deps
+      - name: Build ia32
+        run: npm run build32
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USE_HARD_LINKS: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mizan-ia32
+          path: dist/*.exe
+          retention-days: 90
+
+  release:
+    name: Release
+    needs: [build-x64, build-ia32]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: mizan-x64,  path: ./release }
+      - uses: actions/download-artifact@v4
+        with: { name: mizan-ia32, path: ./release }
+      - name: Get version
+        id: ver
+        run: echo "v=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+      - name: Delete old latest tag
+        run: git push origin :refs/tags/latest 2>/dev/null || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "ميزان POS v${{ steps.ver.outputs.v }}"
+          body: |
+            ## ⚖️ ميزان POS v${{ steps.ver.outputs.v }}
+
+            | الملف | النظام |
+            |-------|--------|
+            | `ميزان POS Setup x64.exe` | Windows 10/11 (64-bit) |
+            | `ميزان POS Setup ia32.exe` | Windows 7/8/10 (32-bit) |
+
+            **الدخول الأول:** admin / admin123
+          files: ./release/*.exe
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
